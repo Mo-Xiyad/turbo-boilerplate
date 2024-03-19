@@ -3,20 +3,14 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
 
-const uri = [
-  "mysql://",
-  process.env.DB_USERNAME,
-  ":",
-  process.env.DB_PASSWORD,
-  "@",
-  process.env.DB_HOST,
-  ":3306/",
-  process.env.DB_NAME,
-  '?ssl={"rejectUnauthorized":true}',
-].join("");
+const url = process.env.DATABASE_URL;
+
+if (!url) {
+  throw new Error("No DATABASE_URL provided");
+}
 
 export default {
   schema: "./src/schema",
   driver: "mysql2",
-  dbCredentials: { uri },
+  dbCredentials: { uri: url },
 } satisfies Config;

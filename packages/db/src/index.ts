@@ -10,10 +10,14 @@ export { mySqlTable as tableCreator } from "./schema/_table";
 
 export * from "drizzle-orm";
 
+const url = process.env.DATABASE_URL;
+
+if (!url) {
+  throw new Error("No DATABASE_URL provided");
+}
+
 const connection = connect({
-  host: process.env.DB_HOST!,
-  username: process.env.DB_USERNAME!,
-  password: process.env.DB_PASSWORD!,
+  url,
 });
 
 export const db = drizzle(connection, { schema });
