@@ -11,6 +11,7 @@
         ".next/**",
         "!.next/cache/**",
         "next-env.d.ts",
+        ".expo/**",
         ".output/**",
         ".vercel/output/**"
       ]
@@ -23,6 +24,14 @@
       "outputs": ["node_modules/.cache/.prettiercache"],
       "outputMode": "new-only"
     },
+    "lint": {
+      "dependsOn": ["^topo"],
+      "outputs": ["node_modules/.cache/.eslintcache"]
+    },
+    "typecheck": {
+      "dependsOn": ["^topo"],
+      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
+    },
     "clean": {
       "cache": false
     },
@@ -30,6 +39,5 @@
       "cache": false
     }
   },
-  "globalEnv": [
-  ]
+  "globalEnv": ["DATABASE_URL"]
 }
