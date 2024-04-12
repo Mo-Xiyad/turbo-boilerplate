@@ -5,9 +5,15 @@ import { SignOutButton } from "@clerk/nextjs";
 
 import { Button } from "@acme/ui/button";
 
+import { trpc } from "~/trpc/client";
+
 export const runtime = "edge";
 
 export default function HomePage() {
+  // const {} = api.post.all.useQuery();
+  const { data } = trpc.post.all.useQuery();
+  console.log(data);
+
   return (
     <main className="container h-screen py-16">
       <div className="flex flex-col items-center justify-center gap-4">

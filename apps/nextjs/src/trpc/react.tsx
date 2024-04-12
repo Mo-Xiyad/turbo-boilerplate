@@ -1,12 +1,13 @@
-// "use client";
+"use client";
 
-// import { useState } from "react";
-// import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// import { loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
-// import { createTRPCReact } from "@trpc/react-query";
-// import SuperJSON from "superjson";
+import { useEffect, useState } from "react";
+import { ClerkProvider, useAuth } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { httpBatchLink } from "@trpc/client";
+import { SuperJSON } from "superjson";
 
-// import type { AppRouter } from "@acme/api";
+import { trpc } from "./client";
 
 // export const api = createTRPCReact<AppRouter>();
 
@@ -50,14 +51,7 @@
 // }
 // lib/reactQuery-provider.tsx
 
-"use client";
-
-import { useState } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// const url = "http://localhost:3000/api/trpc";
+const url = "http://localhost:3000/api/trpc";
 
 // const TRPCReactProvider = ({ children }: { children: ReactNode }) => {
 //   const { getToken } = useAuth();
@@ -103,57 +97,56 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 //     // </QueryClientProvider>
 //   );
 // };
-// const useTrpcClient = () => {
-//   const { getToken } = useAuth();
+const useTrpcClient = () => {
+  const { getToken } = useAuth();
 
-//   const [trpcClient, setTrpcClient] = useState(() =>
-//     createTrpcClient(url, getToken),
-//   );
+  const [trpcClient, setTrpcClient] = useState(() =>
+    createTrpcClient(url, getToken),
+  );
 
-//   useEffect(() => {
-//     setTrpcClient(() => createTrpcClient(url, getToken));
-//   }, [url, getToken]);
+  useEffect(() => {
+    setTrpcClient(() => createTrpcClient(url, getToken));
+  }, [url, getToken]);
 
-//   const [queryClient] = useState(() => {
-//     return new QueryClient({
-//       defaultOptions: {
-//         queries: {
-//           retry: 1,
-//         },
-//       },
-//     });
-//   });
+  const [queryClient] = useState(() => {
+    return new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: 1,
+        },
+      },
+    });
+  });
 
-//   return {
-//     trpcClient,
-//     queryClient,
-//   };
-// };
-// const createTrpcClient = (
-//   url: string,
-//   getToken: () => Promise<string | null>,
-// ) => {
-//   return trpc.createClient({
-//     links: [
-//       httpBatchLink({
-//         transformer: superjson,
-//         url: url,
-//         fetch(url, option) {
-//           return fetch(url, {
-//             ...option,
-//             credentials: "include",
-//           });
-//         },
-//         headers: async () => {
-//           return {
-//             Authorization: `${await getToken()}`,
-//           };
-//         },
-//       }),
-//     ],
-//     // transformer: SuperJSON,
-//   });
-// };
+  return {
+    trpcClient,
+    queryClient,
+  };
+};
+const createTrpcClient = (
+  url: string,
+  getToken: () => Promise<string | null>,
+) => {
+  return trpc.createClient({
+    transformer: SuperJSON,
+    links: [
+      httpBatchLink({
+        url: url,
+        fetch(url, option) {
+          return fetch(url, {
+            ...option,
+            credentials: "include",
+          });
+        },
+        headers: async () => {
+          return {
+            Authorization: `${await getToken()}`,
+          };
+        },
+      }),
+    ],
+  });
+};
 
 export function ClientProviders(props: { children: React.ReactNode }) {
   return (
@@ -167,21 +160,12 @@ export function ClientProviders(props: { children: React.ReactNode }) {
   );
 }
 const InnerProvider = (props: { children: React.ReactNode }) => {
-  // const { trpcClient, queryClient } = useTrpcClient();
-  const [queryClient] = useState(() => {
-    return new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: 1,
-        },
-      },
-    });
-  });
+  const { trpcClient, queryClient } = useTrpcClient();
   return (
-    // <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
-      {props.children}
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        {props.children}
+      </trpc.Provider>
     </QueryClientProvider>
-    // </trpc.Provider>
   );
 };
